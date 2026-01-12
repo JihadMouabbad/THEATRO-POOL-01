@@ -116,12 +116,8 @@ class DatabaseSeeder extends Seeder
         $firstRoundMatches = $ongoingTournament->matches()->where('round', 1)->get();
         
         foreach ($firstRoundMatches as $match) {
-            // Simulate a random score (winner gets higher score)
-            $score1 = rand(3, 7);
-            $score2 = rand(3, 7);
-            while ($score1 === $score2) {
-                $score2 = rand(3, 7);
-            }
+            // Generate unique random scores (avoid ties)
+            list($score1, $score2) = $this->generateRandomScores();
             $bracketGenerator->processMatchResult($match, $score1, $score2);
         }
 
@@ -155,11 +151,7 @@ class DatabaseSeeder extends Seeder
             foreach ($roundMatches as $match) {
                 $match->refresh();
                 if ($match->hasBothPlayers() && !$match->isCompleted()) {
-                    $score1 = rand(3, 7);
-                    $score2 = rand(3, 7);
-                    while ($score1 === $score2) {
-                        $score2 = rand(3, 7);
-                    }
+                    list($score1, $score2) = $this->generateRandomScores();
                     $bracketGenerator->processMatchResult($match, $score1, $score2);
                 }
             }
@@ -170,5 +162,31 @@ class DatabaseSeeder extends Seeder
         $this->command->info('Login credentials:');
         $this->command->info('  Admin: admin@theatropool.com / password');
         $this->command->info('  Player: player@theatropool.com / password');
+    }
+
+    /**
+     * Generate random scores ensuring they are not equal.
+     * Uses a safety counter to prevent infinite loops.
+     *
+     * @return array{0: int, 1: int}
+     */
+    private function generateRandomScores(): array
+    {
+        $score1 = rand(3, 7);
+        $score2 = rand(3, 7);
+        $attempts = 0;
+        $maxAttempts = 10;
+        
+        while ($score1 === $score2 && $attempts < $maxAttempts) {
+            $score2 = rand(3, 7);
+            $attempts++;
+        }
+        
+        // Fallback: ensure scores are different
+        if ($score1 === $score2) {
+            $score2 = $score1 > 3 ? $score1 - 1 : $score1 + 1;
+        }
+        
+        return [$score1, $score2];
     }
 }

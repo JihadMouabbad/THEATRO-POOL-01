@@ -230,34 +230,15 @@ class BracketGenerator
 
     /**
      * Get the bracket seeding order for standard single-elimination format.
+     * Uses alternating top/bottom seed pairing (1 vs 8, 2 vs 7, etc.)
      *
      * @param int $playerCount
      * @return array<int>
      */
     protected function getBracketSeedOrder(int $playerCount): array
     {
-        // Generate standard single-elimination bracket order
-        // This ensures top seeds are on opposite sides of the bracket
-        $order = [0, $playerCount - 1]; // 1 vs 8 (using 0-indexed)
-        
-        $matches = 1;
-        while ($matches < $playerCount / 2) {
-            $newOrder = [];
-            foreach ($order as $index => $seed) {
-                if ($index % 2 === 0) {
-                    $newOrder[] = $seed;
-                    $newOrder[] = $playerCount - 1 - $seed;
-                } else {
-                    $complement = $playerCount - 1 - $seed;
-                    $newOrder[] = $seed;
-                    $newOrder[] = $complement;
-                }
-            }
-            $order = $newOrder;
-            $matches *= 2;
-        }
-
-        // Simplified approach: alternate between top and bottom half
+        // Alternate between top and bottom seeds for fair matchups
+        // Example for 8 players: [0,7, 1,6, 2,5, 3,4] = 1v8, 2v7, 3v6, 4v5
         $result = [];
         for ($i = 0; $i < $playerCount / 2; $i++) {
             $result[] = $i;
