@@ -94,6 +94,16 @@ class Player extends Model
     }
 
     /**
+     * Get all tournaments where this player was the champion.
+     *
+     * @return HasMany<Tournament>
+     */
+    public function championedTournaments(): HasMany
+    {
+        return $this->hasMany(Tournament::class, 'champion_id');
+    }
+
+    /**
      * Calculate the win rate percentage.
      *
      * @return float

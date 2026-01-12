@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MatchController;
 use App\Http\Controllers\PlayerController;
+use App\Http\Controllers\RankingsController;
+use App\Http\Controllers\StatisticsController;
 use App\Http\Controllers\TournamentController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +44,11 @@ Route::get('/tournaments/{tournament}', [TournamentController::class, 'show'])->
 // Public player profiles (anyone can view)
 Route::get('/players', [PlayerController::class, 'index'])->name('players.index');
 Route::get('/players/{player}', [PlayerController::class, 'show'])->name('players.show');
+
+// Public pages - Rankings, Archive, Statistics
+Route::get('/rankings', [RankingsController::class, 'index'])->name('rankings.index');
+Route::get('/archive', [ArchiveController::class, 'index'])->name('archive.index');
+Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics.index');
 
 // Authenticated routes (require login)
 Route::middleware(['auth'])->group(function () {

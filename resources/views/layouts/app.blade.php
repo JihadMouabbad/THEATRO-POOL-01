@@ -52,6 +52,71 @@
     </script>
     
     <style>
+        /* Fallback styles when Tailwind CDN doesn't load */
+        :root {
+            --pool-green: #1a472a;
+            --pool-felt: #2d5a3d;
+            --pool-light: #3d7a5d;
+            --pool-gold: #FFD700;
+        }
+        
+        /* Base fallback styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+            min-height: 100vh;
+        }
+        
+        a { color: var(--pool-green); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        
+        .fallback-nav {
+            background: linear-gradient(135deg, var(--pool-green) 0%, var(--pool-felt) 50%, var(--pool-light) 100%);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .fallback-nav a {
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background 0.3s;
+        }
+        
+        .fallback-nav a:hover {
+            background: rgba(255,255,255,0.2);
+            text-decoration: none;
+        }
+        
+        .fallback-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .fallback-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .fallback-footer {
+            background: linear-gradient(135deg, var(--pool-green) 0%, var(--pool-felt) 50%, var(--pool-light) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-top: auto;
+        }
+        
         [x-cloak] { display: none !important; }
         
         /* Custom scrollbar */
@@ -183,10 +248,22 @@
                            class="px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-2 {{ request()->routeIs('players.*') ? 'bg-white/20 shadow-inner' : '' }}">
                             <span>👥</span> Players
                         </a>
+                        <a href="{{ route('rankings.index') }}" 
+                           class="px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-2 {{ request()->routeIs('rankings.*') ? 'bg-white/20 shadow-inner' : '' }}">
+                            <span>👑</span> Rankings
+                        </a>
+                        <a href="{{ route('statistics.index') }}" 
+                           class="px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-2 {{ request()->routeIs('statistics.*') ? 'bg-white/20 shadow-inner' : '' }}">
+                            <span>📊</span> Statistics
+                        </a>
+                        <a href="{{ route('archive.index') }}" 
+                           class="px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-2 {{ request()->routeIs('archive.*') ? 'bg-white/20 shadow-inner' : '' }}">
+                            <span>📚</span> Archive
+                        </a>
                         @auth
                             <a href="{{ route('dashboard') }}" 
                                class="px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-2 {{ request()->routeIs('dashboard') ? 'bg-white/20 shadow-inner' : '' }}">
-                                <span>📊</span> Dashboard
+                                <span>⚙️</span> Dashboard
                             </a>
                         @endauth
                     </div>
@@ -242,8 +319,11 @@
             <div class="px-4 py-3 space-y-2">
                 <a href="{{ route('tournaments.index') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">🏆 Tournaments</a>
                 <a href="{{ route('players.index') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">👥 Players</a>
+                <a href="{{ route('rankings.index') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">👑 Rankings</a>
+                <a href="{{ route('statistics.index') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">📊 Statistics</a>
+                <a href="{{ route('archive.index') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">📚 Archive</a>
                 @auth
-                    <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">📊 Dashboard</a>
+                    <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">⚙️ Dashboard</a>
                     <hr class="border-white/20 my-2">
                     <div class="px-4 py-2 text-white/70 text-sm">Signed in as {{ Auth::user()->name }}</div>
                     <form action="{{ route('logout') }}" method="POST">
@@ -317,8 +397,11 @@
                 <div class="text-center">
                     <h4 class="font-semibold mb-3">Quick Links</h4>
                     <div class="space-y-2 text-sm text-white/70">
-                        <a href="{{ route('tournaments.index') }}" class="block hover:text-white transition">Tournaments</a>
-                        <a href="{{ route('players.index') }}" class="block hover:text-white transition">Players</a>
+                        <a href="{{ route('tournaments.index') }}" class="block hover:text-white transition">🏆 Tournaments</a>
+                        <a href="{{ route('players.index') }}" class="block hover:text-white transition">👥 Players</a>
+                        <a href="{{ route('rankings.index') }}" class="block hover:text-white transition">👑 Rankings</a>
+                        <a href="{{ route('statistics.index') }}" class="block hover:text-white transition">📊 Statistics</a>
+                        <a href="{{ route('archive.index') }}" class="block hover:text-white transition">📚 Archive</a>
                     </div>
                 </div>
                 <div class="text-center md:text-right">
