@@ -84,15 +84,6 @@ class StatisticsController extends Controller
             ->take(10)
             ->get();
 
-        // Monthly tournament count (last 6 months) - using strftime for SQLite compatibility
-        $monthlyTournaments = Tournament::where('status', Tournament::STATUS_FINISHED)
-            ->where('end_date', '>=', now()->subMonths(6))
-            ->selectRaw("strftime('%Y', end_date) as year, strftime('%m', end_date) as month, COUNT(*) as count")
-            ->groupBy('year', 'month')
-            ->orderBy('year')
-            ->orderBy('month')
-            ->get();
-
         // Most popular tournament format
         $popularFormats = Tournament::selectRaw('max_players, COUNT(*) as count')
             ->groupBy('max_players')
@@ -105,7 +96,6 @@ class StatisticsController extends Controller
             'highestWinRates',
             'mostChampionships',
             'recentMatches',
-            'monthlyTournaments',
             'popularFormats'
         ));
     }
