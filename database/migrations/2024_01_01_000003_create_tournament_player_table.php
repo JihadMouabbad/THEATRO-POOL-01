@@ -21,6 +21,7 @@ return new class extends Migration
             $table->foreignId('player_id')->constrained()->onDelete('cascade');
             $table->unsignedTinyInteger('seed')->nullable(); // Player seed/position in bracket
             $table->timestamp('registered_at')->useCurrent();
+            $table->timestamps(); // Required for withTimestamps() in Eloquent relationships
             
             // Ensure a player can only be registered once per tournament
             $table->unique(['tournament_id', 'player_id']);

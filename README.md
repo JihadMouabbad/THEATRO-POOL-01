@@ -120,11 +120,16 @@ Visit `http://localhost:8000` in your browser.
 
 ### Routes
 
-- `/` - Home page
+- `/` - Home page with live tournaments, upcoming events, and Hall of Fame
 - `/login`, `/register` - Authentication
-- `/dashboard` - Admin dashboard
+- `/dashboard` - Admin dashboard with stats and management links
 - `/players` - Player listing and CRUD
+- `/players/{id}` - Player profile with stats and match history
 - `/tournaments` - Tournament listing and management
+- `/tournaments/{id}` - Tournament detail with bracket visualization
+- `/rankings` - Player leaderboard with sorting options
+- `/statistics` - Comprehensive analytics and stats
+- `/archive` - Finished tournaments archive with search
 - `/matches/{id}` - Match details and result entry
 
 ## License
