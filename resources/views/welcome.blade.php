@@ -49,21 +49,21 @@
             <div class="w-16 h-16 bg-gradient-to-br from-pool-green to-pool-felt rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                 <span class="text-3xl text-white">🏆</span>
             </div>
-            <div class="text-5xl font-black text-pool-green mb-2 stat-number">{{ \App\Models\Tournament::count() }}</div>
+            <div class="text-5xl font-black text-pool-green mb-2 stat-number">{{ $stats['tournaments'] }}</div>
             <div class="text-gray-500 font-medium uppercase tracking-wide text-sm">Tournaments</div>
         </div>
         <div class="bg-white rounded-2xl shadow-lg p-8 card-hover text-center group">
             <div class="w-16 h-16 bg-gradient-to-br from-pool-green to-pool-felt rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                 <span class="text-3xl text-white">👥</span>
             </div>
-            <div class="text-5xl font-black text-pool-green mb-2 stat-number">{{ \App\Models\Player::count() }}</div>
+            <div class="text-5xl font-black text-pool-green mb-2 stat-number">{{ $stats['players'] }}</div>
             <div class="text-gray-500 font-medium uppercase tracking-wide text-sm">Players</div>
         </div>
         <div class="bg-white rounded-2xl shadow-lg p-8 card-hover text-center group">
             <div class="w-16 h-16 bg-gradient-to-br from-pool-green to-pool-felt rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                 <span class="text-3xl text-white">🎱</span>
             </div>
-            <div class="text-5xl font-black text-pool-green mb-2 stat-number">{{ \App\Models\PoolMatch::where('status', 'completed')->count() }}</div>
+            <div class="text-5xl font-black text-pool-green mb-2 stat-number">{{ $stats['matches'] }}</div>
             <div class="text-gray-500 font-medium uppercase tracking-wide text-sm">Matches Played</div>
         </div>
     </div>
@@ -121,17 +121,6 @@
 </div>
 
 <!-- Active Tournaments Section -->
-@php
-    $activeTournaments = \App\Models\Tournament::where('status', 'ongoing')
-        ->orderBy('start_date')
-        ->take(3)
-        ->get();
-    $upcomingTournaments = \App\Models\Tournament::where('status', 'upcoming')
-        ->orderBy('start_date')
-        ->take(3)
-        ->get();
-@endphp
-
 @if($activeTournaments->count() > 0)
 <div class="mb-16">
     <div class="flex items-center justify-between mb-8">
@@ -212,13 +201,6 @@
 @endif
 
 <!-- Top Players Section -->
-@php
-    $topPlayers = \App\Models\Player::where('total_matches', '>', 0)
-        ->orderByDesc('wins')
-        ->take(5)
-        ->get();
-@endphp
-
 @if($topPlayers->count() > 0)
 <div class="mb-16">
     <h2 class="text-3xl font-bold text-center text-gray-800 mb-8 flex items-center justify-center gap-3">

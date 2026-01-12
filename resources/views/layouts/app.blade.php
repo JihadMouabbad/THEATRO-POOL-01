@@ -144,6 +144,21 @@
             0% { opacity: 0; transform: translateY(-10px); }
             100% { opacity: 1; transform: translateY(0); }
         }
+        
+        /* Reduced motion accessibility support */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .animate-bounce-slow, .animate-pulse-slow, .animate-pulse, .animate-glow {
+                animation: none !important;
+            }
+            .trophy-shine::after {
+                animation: none !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex flex-col dark:from-gray-900 dark:to-gray-800">
@@ -309,9 +324,9 @@
                 <div class="text-center md:text-right">
                     <h4 class="font-semibold mb-3">Statistics</h4>
                     <div class="text-sm text-white/70">
-                        <p>{{ \App\Models\Tournament::count() }} Tournaments</p>
-                        <p>{{ \App\Models\Player::count() }} Players</p>
-                        <p>{{ \App\Models\PoolMatch::where('status', 'completed')->count() }} Matches</p>
+                        <p>{{ $footerStats['tournaments'] ?? 0 }} Tournaments</p>
+                        <p>{{ $footerStats['players'] ?? 0 }} Players</p>
+                        <p>{{ $footerStats['matches'] ?? 0 }} Matches</p>
                     </div>
                 </div>
             </div>
