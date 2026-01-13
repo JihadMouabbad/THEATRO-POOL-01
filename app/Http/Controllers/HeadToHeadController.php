@@ -58,19 +58,8 @@ class HeadToHeadController extends Controller
         $player2Wins = $matches->where('winner_id', $player2->id)->count();
         $totalMatches = $matches->count();
 
-        // Calculate total scores
-        $player1TotalScore = 0;
-        $player2TotalScore = 0;
-
-        foreach ($matches as $match) {
-            if ($match->player1_id === $player1->id) {
-                $player1TotalScore += $match->player1_score ?? 0;
-                $player2TotalScore += $match->player2_score ?? 0;
-            } else {
-                $player1TotalScore += $match->player2_score ?? 0;
-                $player2TotalScore += $match->player1_score ?? 0;
-            }
-        }
+        // Calculate total scores using helper method
+        [$player1TotalScore, $player2TotalScore] = $this->calculateTotalScores($matches, $player1->id);
 
         $stats = [
             'player1_wins' => $player1Wins,
@@ -81,5 +70,26 @@ class HeadToHeadController extends Controller
         ];
 
         return view('head-to-head.index', compact('players', 'player1', 'player2', 'matches', 'stats'));
+    }
+
+    /**
+     * Calculate total scores for player1 across all matches.
+     *
+     * @param \Illuminate\Support\Collection $matches
+     * @param int $player1Id
+     * @return array{0: int, 1: int} [player1TotalScore, player2TotalScore]
+     */
+    private function calculateTotalScores($matches, int $player1Id): array
+    {
+        $player1TotalScore = 0;
+        $player2TotalScore = 0;
+
+        foreach ($matches as $match) {
+            $isPlayer1First = $match->player1_id === $player1Id;
+            $player1TotalScore += $isPlayer1First ? ($match->player1_score ?? 0) : ($match->player2_score ?? 0);
+            $player2TotalScore += $isPlayer1First ? ($match->player2_score ?? 0) : ($match->player1_score ?? 0);
+        }
+
+        return [$player1TotalScore, $player2TotalScore];
     }
 }

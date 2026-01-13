@@ -268,6 +268,10 @@
                            class="px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-1 {{ request()->routeIs('rules.*') ? 'bg-white/20 shadow-inner' : '' }}">
                             <span>📋</span> Rules
                         </a>
+                        <a href="{{ route('archive.index') }}" 
+                           class="px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-1 {{ request()->routeIs('archive.*') ? 'bg-white/20 shadow-inner' : '' }}">
+                            <span>📚</span> Archive
+                        </a>
                         @auth
                             <a href="{{ route('dashboard') }}" 
                                class="px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-1 {{ request()->routeIs('dashboard') ? 'bg-white/20 shadow-inner' : '' }}">

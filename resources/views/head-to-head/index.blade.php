@@ -41,13 +41,13 @@
                 @endforeach
             </select>
         </div>
+        <div class="mt-4 flex justify-center">
+            <button type="submit"
+                    class="px-8 py-3 bg-gradient-to-r from-pool-green to-pool-felt text-white font-bold rounded-xl hover:shadow-lg transition transform hover:scale-105">
+                Compare Players
+            </button>
+        </div>
     </form>
-    <div class="mt-4 flex justify-center">
-        <button type="submit" form="compare-form" onclick="this.form = document.querySelector('form'); this.form.submit();"
-                class="px-8 py-3 bg-gradient-to-r from-pool-green to-pool-felt text-white font-bold rounded-xl hover:shadow-lg transition transform hover:scale-105">
-            Compare Players
-        </button>
-    </div>
 </div>
 
 @if(isset($player1) && isset($player2) && isset($stats))
@@ -206,14 +206,27 @@
 
 <script>
 // Auto-submit form when both players are selected
-document.querySelectorAll('select').forEach(select => {
-    select.addEventListener('change', function() {
-        const player1 = document.getElementById('player1_id').value;
-        const player2 = document.getElementById('player2_id').value;
+(function() {
+    const player1Select = document.getElementById('player1_id');
+    const player2Select = document.getElementById('player2_id');
+    let isSubmitting = false;
+
+    if (!player1Select || !player2Select) return;
+
+    function checkAndSubmit(selectElement) {
+        if (isSubmitting) return;
+        
+        const player1 = player1Select.value;
+        const player2 = player2Select.value;
+        
         if (player1 && player2 && player1 !== player2) {
-            this.form.submit();
+            isSubmitting = true;
+            selectElement.form.submit();
         }
-    });
-});
+    }
+
+    player1Select.addEventListener('change', function() { checkAndSubmit(this); });
+    player2Select.addEventListener('change', function() { checkAndSubmit(this); });
+})();
 </script>
 @endsection
