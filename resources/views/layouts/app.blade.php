@@ -239,30 +239,38 @@
                     </a>
                     
                     <!-- Main Navigation -->
-                    <div class="hidden md:ml-10 md:flex md:space-x-2">
+                    <div class="hidden md:ml-10 md:flex md:space-x-1">
                         <a href="{{ route('tournaments.index') }}" 
-                           class="px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-2 {{ request()->routeIs('tournaments.*') ? 'bg-white/20 shadow-inner' : '' }}">
+                           class="px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-1 {{ request()->routeIs('tournaments.*') ? 'bg-white/20 shadow-inner' : '' }}">
                             <span>🏆</span> Tournaments
                         </a>
                         <a href="{{ route('players.index') }}" 
-                           class="px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-2 {{ request()->routeIs('players.*') ? 'bg-white/20 shadow-inner' : '' }}">
+                           class="px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-1 {{ request()->routeIs('players.*') ? 'bg-white/20 shadow-inner' : '' }}">
                             <span>👥</span> Players
                         </a>
                         <a href="{{ route('rankings.index') }}" 
-                           class="px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-2 {{ request()->routeIs('rankings.*') ? 'bg-white/20 shadow-inner' : '' }}">
+                           class="px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-1 {{ request()->routeIs('rankings.*') ? 'bg-white/20 shadow-inner' : '' }}">
                             <span>👑</span> Rankings
                         </a>
-                        <a href="{{ route('statistics.index') }}" 
-                           class="px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-2 {{ request()->routeIs('statistics.*') ? 'bg-white/20 shadow-inner' : '' }}">
-                            <span>📊</span> Statistics
+                        <a href="{{ route('head-to-head.index') }}" 
+                           class="px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-1 {{ request()->routeIs('head-to-head.*') ? 'bg-white/20 shadow-inner' : '' }}">
+                            <span>⚔️</span> H2H
                         </a>
-                        <a href="{{ route('archive.index') }}" 
-                           class="px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-2 {{ request()->routeIs('archive.*') ? 'bg-white/20 shadow-inner' : '' }}">
-                            <span>📚</span> Archive
+                        <a href="{{ route('activity.index') }}" 
+                           class="px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-1 {{ request()->routeIs('activity.*') ? 'bg-white/20 shadow-inner' : '' }}">
+                            <span>📰</span> Activity
+                        </a>
+                        <a href="{{ route('statistics.index') }}" 
+                           class="px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-1 {{ request()->routeIs('statistics.*') ? 'bg-white/20 shadow-inner' : '' }}">
+                            <span>📊</span> Stats
+                        </a>
+                        <a href="{{ route('rules.index') }}" 
+                           class="px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-1 {{ request()->routeIs('rules.*') ? 'bg-white/20 shadow-inner' : '' }}">
+                            <span>📋</span> Rules
                         </a>
                         @auth
                             <a href="{{ route('dashboard') }}" 
-                               class="px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-2 {{ request()->routeIs('dashboard') ? 'bg-white/20 shadow-inner' : '' }}">
+                               class="px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/20 transition-all duration-300 flex items-center gap-1 {{ request()->routeIs('dashboard') ? 'bg-white/20 shadow-inner' : '' }}">
                                 <span>⚙️</span> Dashboard
                             </a>
                         @endauth
@@ -320,7 +328,10 @@
                 <a href="{{ route('tournaments.index') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">🏆 Tournaments</a>
                 <a href="{{ route('players.index') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">👥 Players</a>
                 <a href="{{ route('rankings.index') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">👑 Rankings</a>
+                <a href="{{ route('head-to-head.index') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">⚔️ Head-to-Head</a>
+                <a href="{{ route('activity.index') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">📰 Activity</a>
                 <a href="{{ route('statistics.index') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">📊 Statistics</a>
+                <a href="{{ route('rules.index') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">📋 Rules</a>
                 <a href="{{ route('archive.index') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">📚 Archive</a>
                 @auth
                     <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">⚙️ Dashboard</a>
@@ -386,7 +397,7 @@
     <!-- Footer -->
     <footer class="bg-gradient-pool text-white py-8 mt-auto no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div class="text-center md:text-left">
                     <div class="flex items-center justify-center md:justify-start gap-2 mb-3">
                         <span class="text-3xl">🎱</span>
@@ -395,22 +406,30 @@
                     <p class="text-white/70 text-sm">Professional tournament management for billiard halls.</p>
                 </div>
                 <div class="text-center">
-                    <h4 class="font-semibold mb-3">Quick Links</h4>
+                    <h4 class="font-semibold mb-3">Tournaments</h4>
                     <div class="space-y-2 text-sm text-white/70">
-                        <a href="{{ route('tournaments.index') }}" class="block hover:text-white transition">🏆 Tournaments</a>
-                        <a href="{{ route('players.index') }}" class="block hover:text-white transition">👥 Players</a>
-                        <a href="{{ route('rankings.index') }}" class="block hover:text-white transition">👑 Rankings</a>
-                        <a href="{{ route('statistics.index') }}" class="block hover:text-white transition">📊 Statistics</a>
+                        <a href="{{ route('tournaments.index') }}" class="block hover:text-white transition">🏆 Active</a>
                         <a href="{{ route('archive.index') }}" class="block hover:text-white transition">📚 Archive</a>
+                        <a href="{{ route('rules.index') }}" class="block hover:text-white transition">📋 Rules</a>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <h4 class="font-semibold mb-3">Players</h4>
+                    <div class="space-y-2 text-sm text-white/70">
+                        <a href="{{ route('players.index') }}" class="block hover:text-white transition">👥 All Players</a>
+                        <a href="{{ route('rankings.index') }}" class="block hover:text-white transition">👑 Rankings</a>
+                        <a href="{{ route('head-to-head.index') }}" class="block hover:text-white transition">⚔️ Head-to-Head</a>
+                        <a href="{{ route('statistics.index') }}" class="block hover:text-white transition">📊 Statistics</a>
                     </div>
                 </div>
                 <div class="text-center md:text-right">
-                    <h4 class="font-semibold mb-3">Statistics</h4>
+                    <h4 class="font-semibold mb-3">Stats</h4>
                     <div class="text-sm text-white/70">
                         <p>{{ $footerStats['tournaments'] ?? 0 }} Tournaments</p>
                         <p>{{ $footerStats['players'] ?? 0 }} Players</p>
                         <p>{{ $footerStats['matches'] ?? 0 }} Matches</p>
                     </div>
+                    <a href="{{ route('activity.index') }}" class="inline-block mt-3 text-pool-gold hover:text-white transition text-sm">📰 View Activity →</a>
                 </div>
             </div>
             <div class="border-t border-white/20 mt-6 pt-6 text-center text-sm text-white/60">

@@ -1,12 +1,15 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HeadToHeadController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MatchController;
 use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\RankingsController;
+use App\Http\Controllers\RulesController;
 use App\Http\Controllers\StatisticsController;
 use App\Http\Controllers\TournamentController;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +52,12 @@ Route::get('/players/{player}', [PlayerController::class, 'show'])->name('player
 Route::get('/rankings', [RankingsController::class, 'index'])->name('rankings.index');
 Route::get('/archive', [ArchiveController::class, 'index'])->name('archive.index');
 Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics.index');
+
+// New public pages - Activity, Head-to-Head, Rules
+Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
+Route::get('/head-to-head', [HeadToHeadController::class, 'index'])->name('head-to-head.index');
+Route::get('/head-to-head/compare', [HeadToHeadController::class, 'compare'])->name('head-to-head.compare');
+Route::get('/rules', [RulesController::class, 'index'])->name('rules.index');
 
 // Authenticated routes (require login)
 Route::middleware(['auth'])->group(function () {
