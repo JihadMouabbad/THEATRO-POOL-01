@@ -15,6 +15,12 @@ A production-ready Laravel web application for managing 8-Ball Pool tournaments 
 - **Match Management**: Update results with automatic winner advancement
 - **Dashboard**: Admin dashboard with stats, active tournaments, and recent matches
 
+### Player Features
+- **User Profiles**: Each player has their own profile they can view and edit
+- **Self-Registration**: Players can join tournaments themselves
+- **Tournament Management**: Players can leave tournaments before they start
+- **Auto Player Creation**: New users automatically get a player profile
+
 ### Analytics & Insights
 - **Rankings**: Player leaderboard with sorting by win rate, wins, and matches
 - **Statistics**: Comprehensive analytics including top scorers, championships, format popularity
@@ -133,7 +139,7 @@ php artisan serve
 |------|-------|-------------|
 | Home | `/` | Landing page with live tournaments, upcoming events, Hall of Fame |
 | Tournaments | `/tournaments` | List all tournaments with filtering |
-| Tournament Detail | `/tournaments/{id}` | View bracket, register players, enter results |
+| Tournament Detail | `/tournaments/{id}` | View bracket, join tournament, enter results |
 | Players | `/players` | List all players with search |
 | Player Profile | `/players/{id}` | Player stats, match history, tournament participation |
 | Rankings | `/rankings` | Player leaderboard with sorting options |
@@ -145,6 +151,7 @@ php artisan serve
 | Login | `/login` | User authentication |
 | Register | `/register` | New user registration |
 | Dashboard | `/dashboard` | Admin control panel (auth required) |
+| My Profile | `/profile` | User's own profile (auth required) |
 
 ## Usage
 
@@ -152,22 +159,24 @@ php artisan serve
 
 1. **Manage Players**: Add, edit, or delete players from the Players page
 2. **Create Tournaments**: Set up new tournaments with 8, 16, or 32 player formats
-3. **Register Players**: Add players to upcoming tournaments
+3. **Register Players**: Add any players to upcoming tournaments
 4. **Generate Brackets**: Start the tournament when all players are registered
 5. **Enter Match Results**: Update scores; winners automatically advance to next round
 
 ### Player Functions
 
-1. View tournaments and live brackets
-2. View player profiles and statistics
-3. Track match history
-4. Compare head-to-head with other players
+1. **View Tournaments**: Browse all tournaments and see live brackets
+2. **Join Tournaments**: Register for upcoming tournaments with available spots
+3. **Leave Tournaments**: Withdraw from tournaments before they start
+4. **View Profile**: See your own stats, matches, and registered tournaments
+5. **Edit Profile**: Update your nickname and contact information
+6. **Compare Stats**: Use Head-to-Head to compare with other players
 
 ## Technical Architecture
 
 ### Database Schema
 
-- `users` - Authentication with admin/player roles
+- `users` - Authentication with admin/player roles, linked to player profiles
 - `players` - Pool players with statistics (wins, losses, total_matches)
 - `tournaments` - Tournament details and status (upcoming/ongoing/finished)
 - `tournament_player` - Player registration pivot table with seeding
@@ -185,9 +194,10 @@ php artisan serve
 | Controller | Purpose |
 |------------|---------|
 | HomeController | Landing page with stats |
-| TournamentController | Tournament CRUD and management |
+| TournamentController | Tournament CRUD, join/leave |
 | PlayerController | Player CRUD and profiles |
 | MatchController | Match result processing |
+| ProfileController | User profile management |
 | RankingsController | Player leaderboard |
 | StatisticsController | Analytics dashboard |
 | HeadToHeadController | Player comparison |

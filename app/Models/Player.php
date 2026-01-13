@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Player model - represents a billiard player in the system.
@@ -19,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $losses
  * @property int $total_matches
  * @property string|null $notes
+ * @property User|null $user
  */
 class Player extends Model
 {
@@ -39,6 +41,16 @@ class Player extends Model
         'total_matches',
         'notes',
     ];
+
+    /**
+     * Get the user account associated with this player.
+     *
+     * @return HasOne<User>
+     */
+    public function user(): HasOne
+    {
+        return $this->hasOne(User::class);
+    }
 
     /**
      * The attributes that should be cast.

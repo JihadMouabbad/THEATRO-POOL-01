@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -14,6 +15,8 @@ use Illuminate\Notifications\Notifiable;
  * @property string $email
  * @property string $password
  * @property string $role
+ * @property int|null $player_id
+ * @property Player|null $player
  */
 class User extends Authenticatable
 {
@@ -30,6 +33,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'player_id',
     ];
 
     /**
@@ -53,6 +57,26 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the player profile associated with this user.
+     *
+     * @return BelongsTo<Player, User>
+     */
+    public function player(): BelongsTo
+    {
+        return $this->belongsTo(Player::class);
+    }
+
+    /**
+     * Check if the user has an associated player profile.
+     *
+     * @return bool
+     */
+    public function hasPlayer(): bool
+    {
+        return $this->player_id !== null;
     }
 
     /**

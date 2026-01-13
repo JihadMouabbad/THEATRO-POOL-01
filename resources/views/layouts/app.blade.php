@@ -294,7 +294,7 @@
                 <div class="hidden md:flex items-center">
                     @auth
                         <div class="flex items-center space-x-4">
-                            <div class="flex items-center gap-2">
+                            <a href="{{ route('profile.show') }}" class="flex items-center gap-2 hover:opacity-80 transition">
                                 <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white font-bold text-sm">
                                     {{ substr(Auth::user()->name, 0, 1) }}
                                 </div>
@@ -304,7 +304,7 @@
                                 @if(Auth::user()->isAdmin())
                                     <span class="px-2 py-0.5 bg-pool-gold text-xs rounded-full text-black font-bold animate-pulse-slow">Admin</span>
                                 @endif
-                            </div>
+                            </a>
                             <form action="{{ route('logout') }}" method="POST" class="inline">
                                 @csrf
                                 <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-red-500/80 rounded-lg hover:bg-red-600 transition-all duration-300 hover:shadow-lg">
@@ -340,6 +340,7 @@
                 @auth
                     <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">⚙️ Dashboard</a>
                     <hr class="border-white/20 my-2">
+                    <a href="{{ route('profile.show') }}" class="block px-4 py-2 text-white hover:bg-white/10 rounded-lg transition">👤 My Profile</a>
                     <div class="px-4 py-2 text-white/70 text-sm">Signed in as {{ Auth::user()->name }}</div>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf

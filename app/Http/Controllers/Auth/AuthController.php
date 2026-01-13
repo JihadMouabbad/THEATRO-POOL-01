@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Player;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -73,16 +74,24 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
+        // Create a player profile automatically for new users
+        $player = Player::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ]);
+
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => 'player', // Default role is player
+            'player_id' => $player->id,
         ]);
 
         Auth::login($user);
 
-        return redirect(route('dashboard'));
+        return redirect(route('dashboard'))
+            ->with('success', 'Welcome! Your account and player profile have been created. You can now join tournaments!');
     }
 
     /**

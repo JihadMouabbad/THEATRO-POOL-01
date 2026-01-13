@@ -19,23 +19,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create Admin User
-        User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@theatropool.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-        ]);
-
-        // Create Regular User
-        User::create([
-            'name' => 'John Player',
-            'email' => 'player@theatropool.com',
-            'password' => Hash::make('password'),
-            'role' => 'player',
-        ]);
-
-        // Create Demo Players
+        // Create Demo Players first
         $players = [
             ['name' => 'Mike "The Shark" Thompson', 'nickname' => 'The Shark', 'email' => 'mike@example.com'],
             ['name' => 'David Chen', 'nickname' => 'Dragon', 'email' => 'david@example.com'],
@@ -55,9 +39,29 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Matthew Jackson', 'nickname' => 'Matt', 'email' => 'matt@example.com'],
         ];
 
+        $createdPlayers = [];
         foreach ($players as $playerData) {
-            Player::create($playerData);
+            $createdPlayers[] = Player::create($playerData);
         }
+
+        // Create Admin User (not linked to a player - admins organize, they don't play)
+        User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@theatropool.com',
+            'password' => Hash::make('password'),
+            'role' => 'admin',
+            'player_id' => null,
+        ]);
+
+        // Create Regular User linked to first player
+        $firstPlayer = $createdPlayers[0];
+        User::create([
+            'name' => $firstPlayer->name,
+            'email' => 'player@theatropool.com',
+            'password' => Hash::make('password'),
+            'role' => 'player',
+            'player_id' => $firstPlayer->id,
+        ]);
 
         // Create Upcoming Tournament (8 players, not full)
         $upcomingTournament = Tournament::create([

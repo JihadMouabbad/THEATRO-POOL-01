@@ -7,6 +7,7 @@ use App\Models\Tournament;
 use App\Services\BracketGenerator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -241,9 +242,12 @@ class TournamentController extends Controller
 
         $tournament->players()->detach($player->id);
 
-        // Re-seed remaining players
-        $tournament->players()->get()->each(function ($p, $index) use ($tournament) {
-            $tournament->players()->updateExistingPivot($p->id, ['seed' => $index + 1]);
+        // Re-seed remaining players in a single transaction
+        DB::transaction(function () use ($tournament) {
+            $players = $tournament->players()->get();
+            foreach ($players as $index => $p) {
+                $tournament->players()->updateExistingPivot($p->id, ['seed' => $index + 1]);
+            }
         });
 
         return back()->with('success', 'Player unregistered successfully.');
@@ -272,5 +276,76 @@ class TournamentController extends Controller
         } catch (\InvalidArgumentException $e) {
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * Allow a player to join a tournament themselves.
+     *
+     * @param Tournament $tournament
+     * @return RedirectResponse
+     */
+    public function joinTournament(Tournament $tournament): RedirectResponse
+    {
+        $user = auth()->user();
+        
+        if (!$user->hasPlayer()) {
+            return back()->with('error', 'You need to create a player profile first. Go to your profile to create one.');
+        }
+        
+        $player = $user->player;
+        
+        if (!$tournament->canRegisterPlayer()) {
+            return back()->with('error', 'Cannot join this tournament. It may be full or already started.');
+        }
+        
+        // Check if player is already registered
+        if ($tournament->players()->where('player_id', $player->id)->exists()) {
+            return back()->with('error', 'You are already registered in this tournament.');
+        }
+        
+        // Get the next available seed
+        $nextSeed = $tournament->players()->count() + 1;
+        
+        $tournament->players()->attach($player->id, ['seed' => $nextSeed]);
+        
+        return back()->with('success', 'You have successfully joined the tournament!');
+    }
+
+    /**
+     * Allow a player to leave a tournament.
+     *
+     * @param Tournament $tournament
+     * @return RedirectResponse
+     */
+    public function leaveTournament(Tournament $tournament): RedirectResponse
+    {
+        $user = auth()->user();
+        
+        if (!$user->hasPlayer()) {
+            return back()->with('error', 'You do not have a player profile.');
+        }
+        
+        $player = $user->player;
+        
+        if (!$tournament->isUpcoming()) {
+            return back()->with('error', 'Cannot leave a tournament that has already started.');
+        }
+        
+        // Check if player is registered
+        if (!$tournament->players()->where('player_id', $player->id)->exists()) {
+            return back()->with('error', 'You are not registered in this tournament.');
+        }
+        
+        $tournament->players()->detach($player->id);
+        
+        // Re-seed remaining players in a single transaction
+        DB::transaction(function () use ($tournament) {
+            $players = $tournament->players()->get();
+            foreach ($players as $index => $p) {
+                $tournament->players()->updateExistingPivot($p->id, ['seed' => $index + 1]);
+            }
+        });
+        
+        return back()->with('success', 'You have left the tournament.');
     }
 }

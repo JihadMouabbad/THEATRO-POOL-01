@@ -8,6 +8,7 @@ use App\Http\Controllers\HeadToHeadController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MatchController;
 use App\Http\Controllers\PlayerController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RankingsController;
 use App\Http\Controllers\RulesController;
 use App\Http\Controllers\StatisticsController;
@@ -40,6 +41,37 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
 
+// Admin-only routes (require admin role) - Place BEFORE public routes with route parameters
+Route::middleware(['auth', 'admin'])->group(function () {
+    // Player management - MUST be before /players/{player}
+    Route::get('/players/create', [PlayerController::class, 'create'])->name('players.create');
+    Route::post('/players', [PlayerController::class, 'store'])->name('players.store');
+    Route::get('/players/{player}/edit', [PlayerController::class, 'edit'])->name('players.edit');
+    Route::put('/players/{player}', [PlayerController::class, 'update'])->name('players.update');
+    Route::delete('/players/{player}', [PlayerController::class, 'destroy'])->name('players.destroy');
+
+    // Tournament management - MUST be before /tournaments/{tournament}
+    Route::get('/tournaments/create', [TournamentController::class, 'create'])->name('tournaments.create');
+    Route::post('/tournaments', [TournamentController::class, 'store'])->name('tournaments.store');
+    Route::get('/tournaments/{tournament}/edit', [TournamentController::class, 'edit'])->name('tournaments.edit');
+    Route::put('/tournaments/{tournament}', [TournamentController::class, 'update'])->name('tournaments.update');
+    Route::delete('/tournaments/{tournament}', [TournamentController::class, 'destroy'])->name('tournaments.destroy');
+
+    // Tournament player registration (admin can register any player)
+    Route::post('/tournaments/{tournament}/register-player', [TournamentController::class, 'registerPlayer'])
+        ->name('tournaments.registerPlayer');
+    Route::delete('/tournaments/{tournament}/unregister-player/{player}', [TournamentController::class, 'unregisterPlayer'])
+        ->name('tournaments.unregisterPlayer');
+
+    // Generate bracket
+    Route::post('/tournaments/{tournament}/generate-bracket', [TournamentController::class, 'generateBracket'])
+        ->name('tournaments.generateBracket');
+
+    // Match result management
+    Route::get('/matches/{match}/edit', [MatchController::class, 'edit'])->name('matches.edit');
+    Route::put('/matches/{match}', [MatchController::class, 'update'])->name('matches.update');
+});
+
 // Public tournament viewing (anyone can view)
 Route::get('/tournaments', [TournamentController::class, 'index'])->name('tournaments.index');
 Route::get('/tournaments/{tournament}', [TournamentController::class, 'show'])->name('tournaments.show');
@@ -66,35 +98,16 @@ Route::middleware(['auth'])->group(function () {
 
     // Match viewing
     Route::get('/matches/{match}', [MatchController::class, 'show'])->name('matches.show');
-});
-
-// Admin-only routes (require admin role)
-Route::middleware(['auth', 'admin'])->group(function () {
-    // Player management
-    Route::get('/players/create', [PlayerController::class, 'create'])->name('players.create');
-    Route::post('/players', [PlayerController::class, 'store'])->name('players.store');
-    Route::get('/players/{player}/edit', [PlayerController::class, 'edit'])->name('players.edit');
-    Route::put('/players/{player}', [PlayerController::class, 'update'])->name('players.update');
-    Route::delete('/players/{player}', [PlayerController::class, 'destroy'])->name('players.destroy');
-
-    // Tournament management
-    Route::get('/tournaments/create', [TournamentController::class, 'create'])->name('tournaments.create');
-    Route::post('/tournaments', [TournamentController::class, 'store'])->name('tournaments.store');
-    Route::get('/tournaments/{tournament}/edit', [TournamentController::class, 'edit'])->name('tournaments.edit');
-    Route::put('/tournaments/{tournament}', [TournamentController::class, 'update'])->name('tournaments.update');
-    Route::delete('/tournaments/{tournament}', [TournamentController::class, 'destroy'])->name('tournaments.destroy');
-
-    // Tournament player registration
-    Route::post('/tournaments/{tournament}/register-player', [TournamentController::class, 'registerPlayer'])
-        ->name('tournaments.registerPlayer');
-    Route::delete('/tournaments/{tournament}/unregister-player/{player}', [TournamentController::class, 'unregisterPlayer'])
-        ->name('tournaments.unregisterPlayer');
-
-    // Generate bracket
-    Route::post('/tournaments/{tournament}/generate-bracket', [TournamentController::class, 'generateBracket'])
-        ->name('tournaments.generateBracket');
-
-    // Match result management
-    Route::get('/matches/{match}/edit', [MatchController::class, 'edit'])->name('matches.edit');
-    Route::put('/matches/{match}', [MatchController::class, 'update'])->name('matches.update');
+    
+    // User Profile routes
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/create-player', [ProfileController::class, 'createPlayer'])->name('profile.createPlayer');
+    
+    // Player self-registration for tournaments (players can register themselves)
+    Route::post('/tournaments/{tournament}/join', [TournamentController::class, 'joinTournament'])
+        ->name('tournaments.join');
+    Route::post('/tournaments/{tournament}/leave', [TournamentController::class, 'leaveTournament'])
+        ->name('tournaments.leave');
 });

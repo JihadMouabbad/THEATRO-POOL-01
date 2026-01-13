@@ -106,6 +106,84 @@
 
 @if($tournament->isUpcoming())
 <!-- Registration Section (Only for Upcoming Tournaments) -->
+
+<!-- Player Self-Join Section -->
+@auth
+    @if(!Auth::user()->isAdmin())
+        @php
+            $userPlayer = Auth::user()->player;
+            $isRegistered = $userPlayer && $tournament->players->contains('id', $userPlayer->id);
+        @endphp
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    🎱 Join This Tournament
+                </h2>
+            </div>
+            <div class="p-6">
+                @if(!$userPlayer)
+                    <div class="text-center py-4">
+                        <span class="text-4xl">👤</span>
+                        <p class="text-gray-600 mt-3 font-medium">You need a player profile to join tournaments</p>
+                        <a href="{{ route('profile.show') }}" class="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-pool-green text-white font-semibold rounded-xl hover:bg-pool-felt transition">
+                            Create Player Profile
+                        </a>
+                    </div>
+                @elseif($isRegistered)
+                    <div class="text-center py-4">
+                        <span class="text-4xl">✅</span>
+                        <p class="text-green-600 font-bold text-lg mt-3">You're registered!</p>
+                        <p class="text-gray-500 text-sm mt-1">Good luck in the tournament!</p>
+                        <form action="{{ route('tournaments.leave', $tournament) }}" method="POST" class="mt-4">
+                            @csrf
+                            <button type="submit" class="px-6 py-2 bg-red-100 text-red-700 font-semibold rounded-xl hover:bg-red-200 transition" onclick="return confirm('Are you sure you want to leave this tournament?');">
+                                Leave Tournament
+                            </button>
+                        </form>
+                    </div>
+                @elseif($tournament->canRegisterPlayer())
+                    <div class="text-center py-4">
+                        <span class="text-4xl">🏆</span>
+                        <p class="text-gray-600 mt-3 font-medium">Join this tournament and compete!</p>
+                        <form action="{{ route('tournaments.join', $tournament) }}" method="POST" class="mt-4">
+                            @csrf
+                            <button type="submit" class="px-8 py-3 bg-gradient-to-r from-pool-green to-pool-felt text-white font-bold rounded-xl hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                                🎱 Join Tournament
+                            </button>
+                        </form>
+                    </div>
+                @else
+                    <div class="text-center py-4">
+                        <span class="text-4xl">📋</span>
+                        <p class="text-gray-600 font-medium mt-3">This tournament is full</p>
+                        <p class="text-gray-500 text-sm mt-1">Check back for upcoming tournaments!</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
+@else
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                🎱 Want to Join?
+            </h2>
+        </div>
+        <div class="p-6 text-center">
+            <span class="text-4xl">🔐</span>
+            <p class="text-gray-600 mt-3 font-medium">Login or register to join this tournament</p>
+            <div class="mt-4 flex justify-center gap-4">
+                <a href="{{ route('login') }}" class="px-6 py-2 bg-pool-green text-white font-semibold rounded-xl hover:bg-pool-felt transition">
+                    Login
+                </a>
+                <a href="{{ route('register') }}" class="px-6 py-2 border-2 border-pool-green text-pool-green font-semibold rounded-xl hover:bg-pool-green hover:text-white transition">
+                    Register
+                </a>
+            </div>
+        </div>
+    </div>
+@endauth
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
     <!-- Registered Players -->
     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
