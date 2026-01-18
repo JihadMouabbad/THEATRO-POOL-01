@@ -95,7 +95,7 @@ class Tournament extends Model
     {
         return $this->belongsToMany(Player::class, 'tournament_player')
             ->withPivot('seed', 'registered_at')
-            ->orderBy('pivot_seed');
+            ->orderByPivot('seed');
     }
 
     /**
