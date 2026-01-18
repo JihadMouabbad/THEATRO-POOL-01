@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Player model - represents a billiard player in the system.
- * 
+ *
  * @property int $id
  * @property string $name
  * @property string|null $nickname
@@ -20,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property int $losses
  * @property int $total_matches
  * @property string|null $notes
+ * @property string|null $photo_path
+ * @property int $ranking_points
  * @property User|null $user
  */
 class Player extends Model
@@ -40,6 +42,8 @@ class Player extends Model
         'losses',
         'total_matches',
         'notes',
+        'photo_path',
+        'ranking_points',
     ];
 
     /**
@@ -61,6 +65,7 @@ class Player extends Model
         'wins' => 'integer',
         'losses' => 'integer',
         'total_matches' => 'integer',
+        'ranking_points' => 'integer',
     ];
 
     /**

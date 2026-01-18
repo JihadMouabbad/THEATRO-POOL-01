@@ -46,12 +46,23 @@ class ArchiveController extends Controller
             $tournament->champion = $tournament->getChampion();
         }
 
-        // Get available years for filtering - using strftime for SQLite compatibility
-        $availableYears = Tournament::where('status', Tournament::STATUS_FINISHED)
-            ->selectRaw("strftime('%Y', end_date) as year")
-            ->distinct()
-            ->orderByDesc('year')
-            ->pluck('year');
+        // Get available years for filtering - handle both SQLite and MySQL
+        $driver = config('database.default');
+        if ($driver === 'sqlite') {
+            $availableYears = Tournament::where('status', Tournament::STATUS_FINISHED)
+                ->whereNotNull('end_date')
+                ->selectRaw("strftime('%Y', end_date) as year")
+                ->distinct()
+                ->orderByDesc('year')
+                ->pluck('year');
+        } else {
+            $availableYears = Tournament::where('status', Tournament::STATUS_FINISHED)
+                ->whereNotNull('end_date')
+                ->selectRaw("YEAR(end_date) as year")
+                ->distinct()
+                ->orderByDesc('year')
+                ->pluck('year');
+        }
 
         // Get archive statistics
         $stats = [
@@ -59,7 +70,7 @@ class ArchiveController extends Controller
             'total_players_participated' => \DB::table('tournament_player')
                 ->join('tournaments', 'tournament_player.tournament_id', '=', 'tournaments.id')
                 ->where('tournaments.status', Tournament::STATUS_FINISHED)
-                ->distinct('tournament_player.player_id')
+                ->distinct()
                 ->count('tournament_player.player_id'),
         ];
 

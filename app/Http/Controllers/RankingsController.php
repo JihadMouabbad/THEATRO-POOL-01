@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Player;
 use App\Models\PoolMatch;
 use App\Models\Tournament;
+use App\Services\EloRatingService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -13,6 +14,13 @@ use Illuminate\View\View;
  */
 class RankingsController extends Controller
 {
+    protected EloRatingService $eloService;
+
+    public function __construct(EloRatingService $eloService)
+    {
+        $this->eloService = $eloService;
+    }
+
     /**
      * Display the player rankings/leaderboard page.
      *
@@ -22,11 +30,11 @@ class RankingsController extends Controller
     public function index(Request $request): View
     {
         // Get sorting preference
-        $sortBy = $request->input('sort', 'win_rate');
-        $validSorts = ['wins', 'win_rate', 'total_matches', 'name'];
-        
+        $sortBy = $request->input('sort', 'rating');
+        $validSorts = ['wins', 'win_rate', 'total_matches', 'name', 'rating'];
+
         if (!in_array($sortBy, $validSorts)) {
-            $sortBy = 'win_rate';
+            $sortBy = 'rating';
         }
 
         // Build query for players with matches
@@ -44,20 +52,28 @@ class RankingsController extends Controller
                 $query->orderBy('name');
                 break;
             case 'win_rate':
-            default:
-                // Calculate win rate for sorting
                 $query->orderByRaw('(wins * 100.0 / NULLIF(total_matches, 0)) DESC');
+                break;
+            case 'rating':
+            default:
+                $query->orderByDesc('ranking_points');
                 break;
         }
 
         $rankedPlayers = $query->take(50)->get();
+
+        // Add tier information to each player
+        $rankedPlayers->each(function ($player, $index) {
+            $player->tier = $this->eloService->getRatingTier($player->ranking_points ?? 1000);
+            $player->rank = $index + 1;
+        });
 
         // Get recent champions - calculate dynamically
         $finishedTournaments = Tournament::where('status', Tournament::STATUS_FINISHED)
             ->orderByDesc('end_date')
             ->take(10)
             ->get();
-        
+
         $recentChampions = collect();
         foreach ($finishedTournaments as $tournament) {
             $champion = $tournament->getChampion();

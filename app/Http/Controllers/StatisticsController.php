@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Player;
 use App\Models\PoolMatch;
 use App\Models\Tournament;
+use App\Services\EloRatingService;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
 
@@ -13,6 +14,13 @@ use Illuminate\Support\Facades\DB;
  */
 class StatisticsController extends Controller
 {
+    protected EloRatingService $eloService;
+
+    public function __construct(EloRatingService $eloService)
+    {
+        $this->eloService = $eloService;
+    }
+
     /**
      * Display the global statistics page.
      *
@@ -30,6 +38,14 @@ class StatisticsController extends Controller
             'upcoming_tournaments' => Tournament::where('status', Tournament::STATUS_UPCOMING)->count(),
             'total_matches' => PoolMatch::where('status', PoolMatch::STATUS_COMPLETED)->count(),
         ];
+
+        // Top rated players by ELO
+        $topRated = $this->eloService->getLeaderboard(10);
+
+        // Add tier information to each player
+        $topRated->each(function ($player) {
+            $player->tier = $this->eloService->getRatingTier($player->ranking_points ?? 1000);
+        });
 
         // Top scorers (by total wins)
         $topScorers = Player::where('total_matches', '>', 0)
@@ -52,7 +68,7 @@ class StatisticsController extends Controller
                 $query->whereNotNull('winner_id');
             }])
             ->get();
-        
+
         $championCounts = [];
         foreach ($finishedTournaments as $tournament) {
             $champion = $tournament->getChampion();
@@ -66,7 +82,7 @@ class StatisticsController extends Controller
                 $championCounts[$champion->id]['count']++;
             }
         }
-        
+
         $mostChampionships = collect($championCounts)
             ->sortByDesc('count')
             ->take(10)
@@ -92,6 +108,7 @@ class StatisticsController extends Controller
 
         return view('statistics.index', compact(
             'overallStats',
+            'topRated',
             'topScorers',
             'highestWinRates',
             'mostChampionships',

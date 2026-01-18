@@ -5,16 +5,16 @@
 @section('content')
 <!-- Page Header -->
 <div class="mb-8">
-    <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
-        <span class="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center text-white shadow-lg">📊</span>
+    <h1 class="text-3xl font-bold text-text-primary dark:text-white flex items-center gap-3">
+        <span class="w-12 h-12 bg-gradient-to-br from-brand-light to-success rounded-xl flex items-center justify-center text-white shadow-lg">📊</span>
         Statistics & Analytics
     </h1>
-    <p class="text-gray-500 mt-2">Comprehensive statistics about Theatro Pool tournaments and players</p>
+    <p class="text-text-muted dark:text-gray-400 mt-2">Comprehensive statistics about Theatro Pool tournaments and players</p>
 </div>
 
 <!-- Main Statistics Cards -->
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-    <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg p-6 text-white card-hover">
+    <div class="bg-gradient-to-br from-brand to-brand-light rounded-2xl shadow-lg p-6 text-white card-hover">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-white/80 text-sm font-medium">Total Players</p>
@@ -24,7 +24,7 @@
         </div>
         <p class="text-white/70 text-sm mt-3">{{ $overallStats['active_players'] }} active players</p>
     </div>
-    <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-lg p-6 text-white card-hover">
+    <div class="bg-gradient-to-br from-success to-success-light rounded-2xl shadow-lg p-6 text-white card-hover">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-white/80 text-sm font-medium">Tournaments</p>
@@ -44,7 +44,7 @@
         </div>
         <p class="text-white/70 text-sm mt-3">{{ $overallStats['upcoming_tournaments'] }} upcoming</p>
     </div>
-    <div class="bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl shadow-lg p-6 text-white card-hover">
+    <div class="bg-gradient-to-br from-brand-light to-success rounded-2xl shadow-lg p-6 text-white card-hover">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-white/80 text-sm font-medium">Total Matches</p>
@@ -56,10 +56,57 @@
     </div>
 </div>
 
+<!-- ELO Ratings Section -->
+@if(isset($topRated) && $topRated->count() > 0)
+<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mb-8">
+    <div class="bg-gradient-to-r from-red-500 to-rose-600 px-6 py-4">
+        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            ⚔️ ELO Rankings - Top Rated Players
+        </h2>
+        <p class="text-white/80 text-sm">Skill-based rating system (starting rating: 1000)</p>
+    </div>
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @foreach($topRated as $index => $player)
+            <a href="{{ route('players.show', $player) }}" class="flex items-center gap-4 p-4 rounded-xl hover:shadow-md transition group border-l-4
+                {{ $index === 0 ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20' : '' }}
+                {{ $index === 1 ? 'border-gray-400 bg-surface-alt dark:bg-gray-700' : '' }}
+                {{ $index === 2 ? 'border-amber-600 bg-amber-50 dark:bg-amber-900/20' : '' }}
+                {{ $index > 2 ? 'border-transparent bg-surface dark:bg-gray-700' : '' }}
+            ">
+                <div class="w-10 text-center">
+                    @if($index === 0)
+                        <span class="text-2xl">🥇</span>
+                    @elseif($index === 1)
+                        <span class="text-2xl">🥈</span>
+                    @elseif($index === 2)
+                        <span class="text-2xl">🥉</span>
+                    @else
+                        <span class="font-bold text-gray-400 dark:text-text-muted">#{{ $index + 1 }}</span>
+                    @endif
+                </div>
+                <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                    {{ substr($player->name, 0, 1) }}
+                </div>
+                <div class="flex-1">
+                    <span class="font-bold text-text-primary dark:text-white group-hover:text-brand dark:group-hover:text-gold block">{{ $player->display_name }}</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full {{ $player->tier['color'] }} bg-surface-alt dark:bg-gray-600">{{ $player->tier['title'] }}</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-2xl font-black text-danger dark:text-red-400">{{ $player->ranking_points ?? 1000 }}</span>
+                    <span class="block text-xs text-text-muted dark:text-gray-400">ELO</span>
+                </div>
+            </a>
+            @endforeach
+        </div>
+    </div>
+</div>
+@endif
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     <!-- Top Scorers -->
-    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-        <div class="bg-gradient-to-r from-pool-green to-pool-felt px-6 py-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-brand to-brand-light px-6 py-4">
             <h2 class="text-lg font-bold text-white flex items-center gap-2">
                 🏆 Top Scorers (By Wins)
             </h2>
@@ -68,7 +115,7 @@
             @if($topScorers->count() > 0)
             <div class="space-y-3">
                 @foreach($topScorers as $index => $player)
-                <a href="{{ route('players.show', $player) }}" class="flex items-center gap-4 p-3 bg-gray-50 rounded-xl hover:bg-pool-green/5 transition group">
+                <a href="{{ route('players.show', $player) }}" class="flex items-center gap-4 p-3 bg-surface dark:bg-gray-700 rounded-xl hover:bg-brand/5 dark:hover:bg-brand/10 transition group">
                     <div class="w-10 text-center">
                         @if($index === 0)
                             <span class="text-2xl">🥇</span>
@@ -77,18 +124,18 @@
                         @elseif($index === 2)
                             <span class="text-2xl">🥉</span>
                         @else
-                            <span class="font-bold text-gray-400">#{{ $index + 1 }}</span>
+                            <span class="font-bold text-gray-400 dark:text-text-muted">#{{ $index + 1 }}</span>
                         @endif
                     </div>
-                    <div class="w-10 h-10 bg-gradient-to-br from-pool-green to-pool-felt rounded-lg flex items-center justify-center text-white font-bold">
+                    <div class="w-10 h-10 bg-gradient-to-br from-brand to-brand-light rounded-lg flex items-center justify-center text-white font-bold">
                         {{ substr($player->name, 0, 1) }}
                     </div>
                     <div class="flex-1">
-                        <span class="font-medium text-gray-800 group-hover:text-pool-green">{{ $player->display_name }}</span>
+                        <span class="font-medium text-text-primary dark:text-white group-hover:text-brand dark:group-hover:text-gold">{{ $player->display_name }}</span>
                     </div>
                     <div class="text-right">
-                        <span class="text-2xl font-black text-green-600">{{ $player->wins }}</span>
-                        <span class="text-sm text-gray-500 ml-1">wins</span>
+                        <span class="text-2xl font-black text-success dark:text-green-400">{{ $player->wins }}</span>
+                        <span class="text-sm text-text-muted dark:text-gray-400 ml-1">wins</span>
                     </div>
                 </a>
                 @endforeach
@@ -96,7 +143,7 @@
             @else
             <div class="text-center py-8">
                 <span class="text-4xl">🎱</span>
-                <p class="text-gray-500 mt-2">No data yet</p>
+                <p class="text-text-muted mt-2">No data yet</p>
             </div>
             @endif
         </div>
@@ -114,7 +161,7 @@
             @if($highestWinRates->count() > 0)
             <div class="space-y-3">
                 @foreach($highestWinRates as $index => $player)
-                <a href="{{ route('players.show', $player) }}" class="flex items-center gap-4 p-3 bg-gray-50 rounded-xl hover:bg-yellow-50 transition group">
+                <a href="{{ route('players.show', $player) }}" class="flex items-center gap-4 p-3 bg-surface rounded-xl hover:bg-yellow-50 transition group">
                     <div class="w-10 text-center">
                         @if($index === 0)
                             <span class="text-2xl">🥇</span>
@@ -130,8 +177,8 @@
                         {{ substr($player->name, 0, 1) }}
                     </div>
                     <div class="flex-1">
-                        <span class="font-medium text-gray-800 group-hover:text-pool-green">{{ $player->display_name }}</span>
-                        <span class="text-sm text-gray-500 ml-2">{{ $player->total_matches }} matches</span>
+                        <span class="font-medium text-text-primary group-hover:text-brand">{{ $player->display_name }}</span>
+                        <span class="text-sm text-text-muted ml-2">{{ $player->total_matches }} matches</span>
                     </div>
                     <div class="text-right">
                         <span class="text-2xl font-black text-yellow-600">{{ $player->win_rate }}%</span>
@@ -142,7 +189,7 @@
             @else
             <div class="text-center py-8">
                 <span class="text-4xl">📊</span>
-                <p class="text-gray-500 mt-2">No data yet</p>
+                <p class="text-text-muted mt-2">No data yet</p>
             </div>
             @endif
         </div>
@@ -152,7 +199,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     <!-- Most Championships -->
     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-        <div class="bg-gradient-to-r from-purple-500 to-violet-600 px-6 py-4">
+        <div class="bg-gradient-to-r from-brand-light to-success px-6 py-4">
             <h2 class="text-lg font-bold text-white flex items-center gap-2">
                 👑 Most Championships
             </h2>
@@ -165,15 +212,15 @@
                     <div class="w-10 text-center">
                         <span class="text-2xl">🏆</span>
                     </div>
-                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold">
+                    <div class="w-10 h-10 bg-gradient-to-br from-brand-light to-success rounded-lg flex items-center justify-center text-white font-bold">
                         {{ substr($player->name, 0, 1) }}
                     </div>
                     <div class="flex-1">
-                        <span class="font-medium text-gray-800 group-hover:text-pool-green">{{ $player->display_name }}</span>
+                        <span class="font-medium text-text-primary group-hover:text-brand">{{ $player->display_name }}</span>
                     </div>
                     <div class="text-right">
                         <span class="text-2xl font-black text-purple-600">{{ $player->championships }}</span>
-                        <span class="text-sm text-gray-500 ml-1">{{ $player->championships === 1 ? 'title' : 'titles' }}</span>
+                        <span class="text-sm text-text-muted ml-1">{{ $player->championships === 1 ? 'title' : 'titles' }}</span>
                     </div>
                 </a>
                 @endforeach
@@ -181,7 +228,7 @@
             @else
             <div class="text-center py-8">
                 <span class="text-4xl">👑</span>
-                <p class="text-gray-500 mt-2">No champions yet</p>
+                <p class="text-text-muted mt-2">No champions yet</p>
             </div>
             @endif
         </div>
@@ -189,7 +236,7 @@
 
     <!-- Tournament Format Popularity -->
     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
+        <div class="bg-gradient-to-r from-brand to-brand-light px-6 py-4">
             <h2 class="text-lg font-bold text-white flex items-center gap-2">
                 📈 Tournament Formats
             </h2>
@@ -199,26 +246,26 @@
             <div class="space-y-4">
                 @foreach($popularFormats as $format)
                 @php
-                    $percentage = $overallStats['total_tournaments'] > 0 
-                        ? round(($format->count / $overallStats['total_tournaments']) * 100) 
+                    $percentage = $overallStats['total_tournaments'] > 0
+                        ? round(($format->count / $overallStats['total_tournaments']) * 100)
                         : 0;
                 @endphp
-                <div class="p-4 bg-gray-50 rounded-xl">
+                <div class="p-4 bg-surface rounded-xl">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="font-bold text-gray-800">{{ $format->max_players }} Players</span>
-                        <span class="text-sm text-gray-500">{{ $format->count }} tournaments</span>
+                        <span class="font-bold text-text-primary">{{ $format->max_players }} Players</span>
+                        <span class="text-sm text-text-muted">{{ $format->count }} tournaments</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-3">
-                        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full transition-all duration-500" style="width: {{ $percentage }}%"></div>
+                        <div class="bg-gradient-to-r from-brand to-brand-light h-3 rounded-full transition-all duration-500" style="width: {{ $percentage }}%"></div>
                     </div>
-                    <div class="text-right text-sm text-gray-500 mt-1">{{ $percentage }}%</div>
+                    <div class="text-right text-sm text-text-muted mt-1">{{ $percentage }}%</div>
                 </div>
                 @endforeach
             </div>
             @else
             <div class="text-center py-8">
                 <span class="text-4xl">📈</span>
-                <p class="text-gray-500 mt-2">No data yet</p>
+                <p class="text-text-muted mt-2">No data yet</p>
             </div>
             @endif
         </div>
@@ -239,9 +286,9 @@
         @if($recentMatches->count() > 0)
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             @foreach($recentMatches as $match)
-            <div class="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+            <div class="p-4 bg-surface rounded-xl hover:bg-surface-alt transition">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs text-gray-500 font-medium">
+                    <span class="text-xs text-text-muted font-medium">
                         {{ $match->tournament->name }} • {{ $match->tournament->getRoundName($match->round) }}
                     </span>
                     <span class="text-xs text-gray-400">
@@ -250,20 +297,20 @@
                 </div>
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <span class="{{ $match->winner_id === $match->player1_id ? 'text-green-600 font-bold' : 'text-gray-600' }}">
+                        <span class="{{ $match->winner_id === $match->player1_id ? 'text-success font-bold' : 'text-text-secondary' }}">
                             {{ $match->winner_id === $match->player1_id ? '🏆' : '' }}
                             {{ $match->player1?->display_name ?? 'TBD' }}
                         </span>
                         <span class="text-gray-400 mx-2">vs</span>
-                        <span class="{{ $match->winner_id === $match->player2_id ? 'text-green-600 font-bold' : 'text-gray-600' }}">
+                        <span class="{{ $match->winner_id === $match->player2_id ? 'text-success font-bold' : 'text-text-secondary' }}">
                             {{ $match->winner_id === $match->player2_id ? '🏆' : '' }}
                             {{ $match->player2?->display_name ?? 'TBD' }}
                         </span>
                     </div>
                     <div class="font-mono font-bold">
-                        <span class="{{ $match->player1_score > $match->player2_score ? 'text-green-600' : 'text-gray-500' }}">{{ $match->player1_score }}</span>
+                        <span class="{{ $match->player1_score > $match->player2_score ? 'text-success' : 'text-text-muted' }}">{{ $match->player1_score }}</span>
                         <span class="text-gray-400 mx-1">-</span>
-                        <span class="{{ $match->player2_score > $match->player1_score ? 'text-green-600' : 'text-gray-500' }}">{{ $match->player2_score }}</span>
+                        <span class="{{ $match->player2_score > $match->player1_score ? 'text-success' : 'text-text-muted' }}">{{ $match->player2_score }}</span>
                     </div>
                 </div>
             </div>
@@ -272,7 +319,7 @@
         @else
         <div class="text-center py-12">
             <span class="text-5xl">🎱</span>
-            <p class="text-gray-500 mt-3">No matches played yet</p>
+            <p class="text-text-muted mt-3">No matches played yet</p>
         </div>
         @endif
     </div>

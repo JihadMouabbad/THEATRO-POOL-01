@@ -7,12 +7,14 @@ use App\Models\Player;
 use App\Models\Tournament;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
- * BracketGenerator Service - Generates single-elimination tournament brackets.
- * 
+ * BracketGenerator Service - Generates tournament brackets.
+ *
  * This service handles:
- * - Bracket structure generation for 8, 16, or 32 player tournaments
+ * - Single elimination, double elimination, and round-robin brackets
+ * - Bracket structure generation for any player count
  * - Player seeding and match assignments
  * - Match result processing and winner advancement
  */
@@ -30,40 +32,123 @@ class BracketGenerator
         $players = $tournament->players()->get();
         $playerCount = $players->count();
 
-        // Validate player count matches tournament requirements
-        if ($playerCount !== $tournament->max_players) {
-            throw new \InvalidArgumentException(
-                "Tournament requires {$tournament->max_players} players, but {$playerCount} are registered."
-            );
-        }
-
-        // Validate player count is a power of 2
-        if (!$this->isPowerOfTwo($playerCount)) {
-            throw new \InvalidArgumentException(
-                "Player count must be a power of 2 (8, 16, or 32). Got: {$playerCount}"
-            );
+        if ($playerCount === 0) {
+            throw new \InvalidArgumentException('Tournament has no registered players.');
         }
 
         DB::transaction(function () use ($tournament, $players) {
             // Clear any existing matches for fresh generation
             $tournament->matches()->delete();
 
-            // Calculate total rounds needed (log base 2)
-            $totalRounds = (int) log($players->count(), 2);
-            $tournament->update(['total_rounds' => $totalRounds]);
-
             // Seed players based on registration order (can be enhanced with ranking)
             $seededPlayers = $this->seedPlayers($players);
 
-            // Generate all matches for all rounds
-            $allMatches = $this->generateBracketStructure($tournament, $totalRounds);
-
-            // Assign players to first round matches
-            $this->assignPlayersToFirstRound($tournament, $seededPlayers, $allMatches);
+            // Generate bracket based on tournament type
+            match ($tournament->bracket_type) {
+                Tournament::BRACKET_SINGLE_ELIMINATION => $this->generateSingleElimination($tournament, $seededPlayers),
+                Tournament::BRACKET_DOUBLE_ELIMINATION => $this->generateDoubleElimination($tournament, $seededPlayers),
+                Tournament::BRACKET_ROUND_ROBIN => $this->generateRoundRobin($tournament, $seededPlayers),
+                default => throw new \InvalidArgumentException("Unknown bracket type: {$tournament->bracket_type}"),
+            };
 
             // Update tournament status to ongoing
             $tournament->update(['status' => Tournament::STATUS_ONGOING]);
         });
+    }
+
+    /**
+     * Generate single elimination bracket.
+     *
+     * @param Tournament $tournament
+     * @param Collection $seededPlayers
+     * @return void
+     */
+    protected function generateSingleElimination(Tournament $tournament, Collection $seededPlayers): void
+    {
+        // Validate player count is a power of 2
+        $playerCount = $seededPlayers->count();
+        if (!$this->isPowerOfTwo($playerCount)) {
+            throw new \InvalidArgumentException(
+                "Single elimination requires a power of 2 players (8, 16, 32, etc.). Got: {$playerCount}"
+            );
+        }
+
+        // Calculate total rounds needed (log base 2)
+        $totalRounds = (int) log($playerCount, 2);
+        $tournament->update(['total_rounds' => $totalRounds]);
+
+        // Generate all matches for all rounds
+        $allMatches = $this->generateBracketStructure($tournament, $totalRounds);
+
+        // Assign players to first round matches
+        $this->assignPlayersToFirstRound($tournament, $seededPlayers, $allMatches);
+    }
+
+    /**
+     * Generate double elimination bracket.
+     *
+     * @param Tournament $tournament
+     * @param Collection $seededPlayers
+     * @return void
+     */
+    protected function generateDoubleElimination(Tournament $tournament, Collection $seededPlayers): void
+    {
+        $playerCount = $seededPlayers->count();
+        $winnersRounds = $this->isPowerOfTwo($playerCount) ? (int) log($playerCount, 2) : $this->calculateRoundsForAny($playerCount);
+        $losersRounds = $winnersRounds - 1;
+
+        // Grand final is separate round
+        $tournament->update(['total_rounds' => $winnersRounds + $losersRounds + 1]);
+
+        // Generate winners bracket (standard single elimination)
+        $winnersMatches = $this->generateBracketStructure($tournament, $winnersRounds);
+        $this->assignPlayersToFirstRound($tournament, $seededPlayers, $winnersMatches);
+
+        // Losers bracket matches are created as losers are eliminated from winners bracket
+        // (Handled by MatchManager)
+    }
+
+    /**
+     * Generate round-robin bracket.
+     *
+     * @param Tournament $tournament
+     * @param Collection $seededPlayers
+     * @return void
+     */
+    protected function generateRoundRobin(Tournament $tournament, Collection $seededPlayers): void
+    {
+        $playerCount = $seededPlayers->count();
+        $tournament->update(['total_rounds' => $playerCount - 1]);
+
+        $playerList = $seededPlayers->values();
+        $playerIds = $playerList->pluck('id')->toArray();
+        $matchNumber = 1;
+
+        // Generate all pairings using round-robin algorithm
+        for ($round = 1; $round <= $playerCount - 1; $round++) {
+            for ($i = 0; $i < intval($playerCount / 2); $i++) {
+                $player1Id = $playerIds[$i];
+                $player2Id = $playerIds[$playerCount - 1 - $i];
+
+                if ($player1Id !== $player2Id) {
+                    PoolMatch::create([
+                        'tournament_id' => $tournament->id,
+                        'round' => $round,
+                        'match_number' => $matchNumber++,
+                        'player1_id' => $player1Id,
+                        'player2_id' => $player2Id,
+                        'status' => PoolMatch::STATUS_PENDING,
+                        'match_format' => PoolMatch::FORMAT_RACE_TO,
+                        'frames_to_win' => 5,
+                    ]);
+                }
+            }
+
+            // Rotate players for next round (keep first player fixed)
+            $lastPlayer = array_pop($playerIds);
+            array_splice($playerIds, 1, 0, $lastPlayer);
+            $matchNumber = 1; // Reset for next round
+        }
     }
 
     /**
@@ -72,32 +157,27 @@ class BracketGenerator
      * @param PoolMatch $match
      * @param int $player1Score
      * @param int $player2Score
+     * @param bool $isOverride
      * @return void
      * @throws \InvalidArgumentException
      */
-    public function processMatchResult(PoolMatch $match, int $player1Score, int $player2Score): void
+    public function processMatchResult(PoolMatch $match, int $player1Score, int $player2Score, bool $isOverride = false): void
     {
         if (!$match->hasBothPlayers()) {
             throw new \InvalidArgumentException('Cannot process a match without both players set.');
         }
 
-        if ($player1Score === $player2Score) {
+        if (!$isOverride && $player1Score === $player2Score) {
             throw new \InvalidArgumentException('Match cannot end in a tie. There must be a winner.');
         }
 
-        DB::transaction(function () use ($match, $player1Score, $player2Score) {
+        DB::transaction(function () use ($match, $player1Score, $player2Score, $isOverride) {
             // Determine winner
             $winnerId = $player1Score > $player2Score ? $match->player1_id : $match->player2_id;
             $loserId = $winnerId === $match->player1_id ? $match->player2_id : $match->player1_id;
 
             // Update match with result
-            $match->update([
-                'player1_score' => $player1Score,
-                'player2_score' => $player2Score,
-                'winner_id' => $winnerId,
-                'status' => PoolMatch::STATUS_COMPLETED,
-                'completed_at' => now(),
-            ]);
+            $match->recordResult($player1Score, $player2Score, $isOverride);
 
             // Update player statistics
             $winner = Player::find($winnerId);
@@ -110,7 +190,16 @@ class BracketGenerator
                 $loser->recordLoss();
             }
 
-            // Advance winner to next match if not the final
+            // Update ELO ratings
+            try {
+                $eloService = app(EloRatingService::class);
+                $eloService->updateRatingsForMatch($match->fresh());
+            } catch (\Exception $e) {
+                // Log but don't fail - ELO is supplementary
+                Log::warning('ELO update failed: ' . $e->getMessage());
+            }
+
+            // Advance winner to next match if exists
             $this->advanceWinner($match);
 
             // Check if tournament is complete
@@ -147,7 +236,7 @@ class BracketGenerator
         // Create matches from first round to final
         for ($round = 1; $round <= $totalRounds; $round++) {
             $roundMatches = [];
-            
+
             for ($matchNum = 1; $matchNum <= $matchesPerRound; $matchNum++) {
                 $match = PoolMatch::create([
                     'tournament_id' => $tournament->id,
@@ -157,7 +246,7 @@ class BracketGenerator
                 ]);
                 $roundMatches[$matchNum] = $match;
             }
-            
+
             $allMatches[$round] = $roundMatches;
             $matchesPerRound = $matchesPerRound / 2;
         }
@@ -203,17 +292,17 @@ class BracketGenerator
      * @return void
      */
     protected function assignPlayersToFirstRound(
-        Tournament $tournament, 
-        Collection $seededPlayers, 
+        Tournament $tournament,
+        Collection $seededPlayers,
         array $allMatches
     ): void {
         $firstRoundMatches = $allMatches[1];
         $playerCount = $seededPlayers->count();
-        
+
         // Standard single-elimination bracket seeding
         // Creates matchups like: 1v8, 4v5, 2v7, 3v6 for 8 players
         $bracketOrder = $this->getBracketSeedOrder($playerCount);
-        
+
         $matchIndex = 0;
         foreach ($firstRoundMatches as $match) {
             $player1Index = $bracketOrder[$matchIndex * 2];
@@ -223,7 +312,7 @@ class BracketGenerator
                 'player1_id' => $seededPlayers[$player1Index]->id,
                 'player2_id' => $seededPlayers[$player2Index]->id,
             ]);
-            
+
             $matchIndex++;
         }
     }
@@ -244,7 +333,7 @@ class BracketGenerator
             $result[] = $i;
             $result[] = $playerCount - 1 - $i;
         }
-        
+
         return $result;
     }
 
@@ -304,5 +393,17 @@ class BracketGenerator
     protected function isPowerOfTwo(int $n): bool
     {
         return $n > 0 && ($n & ($n - 1)) === 0;
+    }
+
+    /**
+     * Calculate rounds needed for any player count (not just powers of 2).
+     * Uses ceiling calculation to handle odd numbers.
+     *
+     * @param int $playerCount
+     * @return int
+     */
+    protected function calculateRoundsForAny(int $playerCount): int
+    {
+        return (int) ceil(log($playerCount, 2));
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Player;
 use App\Models\Tournament;
 use App\Services\BracketGenerator;
+use App\Services\MatchManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,13 +23,20 @@ class TournamentController extends Controller
     protected BracketGenerator $bracketGenerator;
 
     /**
+     * @var MatchManager
+     */
+    protected MatchManager $matchManager;
+
+    /**
      * Create a new controller instance.
      *
      * @param BracketGenerator $bracketGenerator
+     * @param MatchManager $matchManager
      */
-    public function __construct(BracketGenerator $bracketGenerator)
+    public function __construct(BracketGenerator $bracketGenerator, MatchManager $matchManager)
     {
         $this->bracketGenerator = $bracketGenerator;
+        $this->matchManager = $matchManager;
     }
 
     /**
@@ -133,9 +141,9 @@ class TournamentController extends Controller
      * Show the form for editing the tournament.
      *
      * @param Tournament $tournament
-     * @return View
+     * @return View|RedirectResponse
      */
-    public function edit(Tournament $tournament): View
+    public function edit(Tournament $tournament): View|RedirectResponse
     {
         if (!$tournament->isUpcoming()) {
             return redirect()->route('tournaments.show', $tournament)
@@ -166,8 +174,8 @@ class TournamentController extends Controller
             'start_date' => ['required', 'date', 'after_or_equal:today'],
             'location' => ['required', 'string', 'max:255'],
             'max_players' => [
-                'required', 
-                'integer', 
+                'required',
+                'integer',
                 Rule::in(Tournament::ALLOWED_PLAYER_COUNTS),
                 'gte:' . $tournament->players()->count(),
             ],
@@ -286,28 +294,29 @@ class TournamentController extends Controller
      */
     public function joinTournament(Tournament $tournament): RedirectResponse
     {
+        /** @var \App\Models\User $user */
         $user = auth()->user();
-        
+
         if (!$user->hasPlayer()) {
             return back()->with('error', 'You need to create a player profile first. Go to your profile to create one.');
         }
-        
+
         $player = $user->player;
-        
+
         if (!$tournament->canRegisterPlayer()) {
             return back()->with('error', 'Cannot join this tournament. It may be full or already started.');
         }
-        
+
         // Check if player is already registered
         if ($tournament->players()->where('player_id', $player->id)->exists()) {
             return back()->with('error', 'You are already registered in this tournament.');
         }
-        
+
         // Get the next available seed
         $nextSeed = $tournament->players()->count() + 1;
-        
+
         $tournament->players()->attach($player->id, ['seed' => $nextSeed]);
-        
+
         return back()->with('success', 'You have successfully joined the tournament!');
     }
 
@@ -319,25 +328,26 @@ class TournamentController extends Controller
      */
     public function leaveTournament(Tournament $tournament): RedirectResponse
     {
+        /** @var \App\Models\User $user */
         $user = auth()->user();
-        
+
         if (!$user->hasPlayer()) {
             return back()->with('error', 'You do not have a player profile.');
         }
-        
+
         $player = $user->player;
-        
+
         if (!$tournament->isUpcoming()) {
             return back()->with('error', 'Cannot leave a tournament that has already started.');
         }
-        
+
         // Check if player is registered
         if (!$tournament->players()->where('player_id', $player->id)->exists()) {
             return back()->with('error', 'You are not registered in this tournament.');
         }
-        
+
         $tournament->players()->detach($player->id);
-        
+
         // Re-seed remaining players in a single transaction
         DB::transaction(function () use ($tournament) {
             $players = $tournament->players()->get();
@@ -345,7 +355,45 @@ class TournamentController extends Controller
                 $tournament->players()->updateExistingPivot($p->id, ['seed' => $index + 1]);
             }
         });
-        
+
         return back()->with('success', 'You have left the tournament.');
+    }
+
+    /**
+     * Get bracket data as JSON (for API / AJAX).
+     *
+     * @param Tournament $tournament
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function bracketData(Tournament $tournament)
+    {
+        $bracketData = $this->matchManager->getBracketData($tournament);
+        $standings = $this->matchManager->getTournamentStandings($tournament);
+
+        return response()->json([
+            'bracket' => $bracketData,
+            'standings' => $standings,
+            'tournament' => [
+                'id' => $tournament->id,
+                'name' => $tournament->name,
+                'status' => $tournament->status,
+                'bracket_type' => $tournament->bracket_type,
+                'total_rounds' => $tournament->total_rounds,
+                'champion_id' => $tournament->champion_id,
+            ],
+        ]);
+    }
+
+    /**
+     * Get tournament standings as JSON.
+     *
+     * @param Tournament $tournament
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function standings(Tournament $tournament)
+    {
+        $standings = $this->matchManager->getTournamentStandings($tournament);
+
+        return response()->json($standings);
     }
 }

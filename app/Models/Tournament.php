@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Tournament model - represents a single-elimination pool tournament.
- * 
+ *
  * @property int $id
  * @property string $name
  * @property string|null $description
@@ -18,7 +19,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $location
  * @property int $max_players
  * @property string $status
+ * @property string $bracket_type
  * @property int $total_rounds
+ * @property int|null $champion_id
  */
 class Tournament extends Model
 {
@@ -30,6 +33,13 @@ class Tournament extends Model
     public const STATUS_UPCOMING = 'upcoming';
     public const STATUS_ONGOING = 'ongoing';
     public const STATUS_FINISHED = 'finished';
+
+    /**
+     * Bracket type constants.
+     */
+    public const BRACKET_SINGLE_ELIMINATION = 'single_elimination';
+    public const BRACKET_DOUBLE_ELIMINATION = 'double_elimination';
+    public const BRACKET_ROUND_ROBIN = 'round_robin';
 
     /**
      * Allowed player counts for tournaments.
@@ -49,7 +59,9 @@ class Tournament extends Model
         'location',
         'max_players',
         'status',
+        'bracket_type',
         'total_rounds',
+        'champion_id',
     ];
 
     /**
@@ -63,6 +75,16 @@ class Tournament extends Model
         'max_players' => 'integer',
         'total_rounds' => 'integer',
     ];
+
+    /**
+     * Get the champion of this tournament.
+     *
+     * @return BelongsTo<Player, $this>
+     */
+    public function champion(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'champion_id');
+    }
 
     /**
      * Get the players registered in this tournament.
@@ -166,7 +188,7 @@ class Tournament extends Model
     public function getRoundName(int $round): string
     {
         $roundsRemaining = $this->total_rounds - $round + 1;
-        
+
         return match ($roundsRemaining) {
             1 => 'Final',
             2 => 'Semi Finals',
@@ -184,14 +206,35 @@ class Tournament extends Model
      */
     public function getChampion(): ?Player
     {
-        if (!$this->isFinished()) {
-            return null;
-        }
+        return $this->champion;
+    }
 
-        $finalMatch = $this->matches()
-            ->where('round', $this->total_rounds)
-            ->first();
+    /**
+     * Get all available bracket types.
+     *
+     * @return array
+     */
+    public static function getBracketTypes(): array
+    {
+        return [
+            self::BRACKET_SINGLE_ELIMINATION => 'Single Elimination',
+            self::BRACKET_DOUBLE_ELIMINATION => 'Double Elimination',
+            self::BRACKET_ROUND_ROBIN => 'Round Robin',
+        ];
+    }
 
-        return $finalMatch?->winner;
+    /**
+     * Check if tournament supports the given bracket type.
+     *
+     * @param string $type
+     * @return bool
+     */
+    public function supportsBracketType(string $type): bool
+    {
+        return in_array($type, [
+            self::BRACKET_SINGLE_ELIMINATION,
+            self::BRACKET_DOUBLE_ELIMINATION,
+            self::BRACKET_ROUND_ROBIN,
+        ]);
     }
 }

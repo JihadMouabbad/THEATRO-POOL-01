@@ -70,6 +70,11 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Match result management
     Route::get('/matches/{match}/edit', [MatchController::class, 'edit'])->name('matches.edit');
     Route::put('/matches/{match}', [MatchController::class, 'update'])->name('matches.update');
+
+    // Match admin operations
+    Route::post('/matches/{match}/override', [MatchController::class, 'override'])->name('matches.override');
+    Route::post('/matches/{match}/schedule', [MatchController::class, 'schedule'])->name('matches.schedule');
+    Route::post('/matches/{match}/start', [MatchController::class, 'start'])->name('matches.start');
 });
 
 // Public tournament viewing (anyone can view)
@@ -98,13 +103,27 @@ Route::middleware(['auth'])->group(function () {
 
     // Match viewing
     Route::get('/matches/{match}', [MatchController::class, 'show'])->name('matches.show');
-    
+    Route::get('/matches/{match}/live', [MatchController::class, 'liveMode'])->name('matches.liveMode');
+    Route::get('/matches/{match}/data', [MatchController::class, 'getData'])->name('matches.data');
+
+    // Tournament JSON APIs
+    Route::get('/tournaments/{tournament}/bracket', [TournamentController::class, 'bracketData'])
+        ->name('tournaments.bracketData');
+    Route::get('/tournaments/{tournament}/standings', [TournamentController::class, 'standings'])
+        ->name('tournaments.standings');
+    Route::get('/tournaments/{tournament}/matches', [MatchController::class, 'getAllMatches'])
+        ->name('tournaments.allMatches');
+    Route::get('/tournaments/{tournament}/pending-matches', [MatchController::class, 'getPendingMatches'])
+        ->name('tournaments.pendingMatches');
+    Route::get('/tournaments/{tournament}/players/{player}/history', [MatchController::class, 'playerHistory'])
+        ->name('tournaments.playerHistory');
+
     // User Profile routes
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/create-player', [ProfileController::class, 'createPlayer'])->name('profile.createPlayer');
-    
+
     // Player self-registration for tournaments (players can register themselves)
     Route::post('/tournaments/{tournament}/join', [TournamentController::class, 'joinTournament'])
         ->name('tournaments.join');
